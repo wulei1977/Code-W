@@ -3,12 +3,13 @@
               xmlns:vs="http://schemas.microsoft.com/visualstudio/extensibility/2022/xaml"
               xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
               xmlns:colors="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
-    <Grid Margin="14">
+    <Grid Margin="14"
+          Background="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
         <Grid.Resources>
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.TextBoxStyleKey}}" />
             <Style TargetType="Button" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" />
             <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowTextBrushKey}}" />
                 <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
             <Style x:Key="MutedText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -20,8 +21,14 @@
                 <Setter Property="Margin" Value="0,0,0,12" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="10" />
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" />
-                <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowBorderBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static colors:EnvironmentColors.PanelGradientBrushKey}}" />
+            </Style>
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowBorderBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowCodeBlockBackgroundBrushKey}}" />
             </Style>
         </Grid.Resources>
 
@@ -42,13 +49,15 @@
                     <Border Width="38"
                             Height="38"
                             Margin="0,0,12,0"
-                            Background="#0F6CBD"
+                            Background="{DynamicResource {x:Static colors:EnvironmentColors.PanelTitleBarBrushKey}}"
+                            BorderBrush="{DynamicResource {x:Static colors:EnvironmentColors.AccentBorderBrushKey}}"
+                            BorderThickness="1"
                             CornerRadius="10">
                         <TextBlock HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    FontSize="15"
                                    FontWeight="Bold"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource {x:Static colors:EnvironmentColors.PanelTitleBarTextBrushKey}}"
                                    Text="C/W" />
                     </Border>
                     <StackPanel>
@@ -87,10 +96,7 @@
                             <DataTemplate>
                                 <Border Margin="0,0,0,10"
                                         Padding="10"
-                                        BorderThickness="1"
-                                        CornerRadius="8"
-                                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
-                                        Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+                                        Style="{StaticResource CardBorder}">
                                     <StackPanel>
                                         <DockPanel LastChildFill="True">
                                             <TextBlock DockPanel.Dock="Left"
@@ -114,9 +120,7 @@
 
                 <Border Grid.Row="4"
                         Padding="10"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                        Style="{StaticResource CardBorder}">
                     <StackPanel>
                         <TextBlock FontWeight="SemiBold" Text="当前输入" />
                         <TextBlock Margin="0,4,0,8"
@@ -235,9 +239,7 @@
                                 <DataTemplate>
                                     <Border Margin="0,0,0,8"
                                             Padding="8"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                                            Style="{StaticResource CardBorder}">
                                         <StackPanel>
                                             <DockPanel LastChildFill="True">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
@@ -297,9 +299,7 @@
                                 <DataTemplate>
                                     <Border Margin="0,0,0,8"
                                             Padding="8"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                                            Style="{StaticResource CardBorder}">
                                         <StackPanel>
                                             <DockPanel LastChildFill="True">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />

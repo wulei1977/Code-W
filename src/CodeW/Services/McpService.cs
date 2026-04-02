@@ -177,7 +177,7 @@ internal sealed class McpService : IMcpService
                     clientInfo = new
                     {
                         name = "Code-W",
-                        version = "0.2.0",
+                        version = "0.1.1",
                     },
                 },
                 cancellationToken);
