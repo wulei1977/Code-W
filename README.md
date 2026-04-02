@@ -70,12 +70,12 @@ src/CodeW/bin/Debug/net8.0-windows/CodeW.vsix
 
 仓库已经附带安装和上架所需的说明与脚本：
 
-- 安装/发布说明： [install-and-publish.md](/d:/work/git/Code-W/docs/install-and-publish.md)
-- 打包脚本： [package-vsix.ps1](/d:/work/git/Code-W/tools/package-vsix.ps1)
-- 本地安装脚本： [install-vsix.ps1](/d:/work/git/Code-W/tools/install-vsix.ps1)
-- Marketplace 发布脚本： [publish-vsix.ps1](/d:/work/git/Code-W/tools/publish-vsix.ps1)
-- 发布清单模板： [publishmanifest.json](/d:/work/git/Code-W/marketplace/publishmanifest.json)
-- Marketplace 介绍页模板： [overview.md](/d:/work/git/Code-W/marketplace/overview.md)
+- 安装/发布说明： [install-and-publish.md](docs/install-and-publish.md)
+- 打包脚本： [package-vsix.ps1](tools/package-vsix.ps1)
+- 本地安装脚本： [install-vsix.ps1](tools/install-vsix.ps1)
+- Marketplace 发布脚本： [publish-vsix.ps1](tools/publish-vsix.ps1)
+- 发布清单模板： [publishmanifest.json](marketplace/publishmanifest.json)
+- Marketplace 介绍页模板： [overview.md](marketplace/overview.md)
 
 ## 配置存储
 
