@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>CodeW</RootNamespace>
+    <AssemblyName>CodeW</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.40608" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="UI\CodeWToolWindowContent.xaml" LogicalName="CodeW.UI.CodeWToolWindowContent.xaml" />
+    <Page Remove="UI\CodeWToolWindowContent.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="art\code-w-icon-32.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="art\code-w-preview-200.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="art\code-w-icon.svg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

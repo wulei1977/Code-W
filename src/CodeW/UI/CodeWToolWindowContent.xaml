@@ -1,0 +1,329 @@
+<DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:vs="http://schemas.microsoft.com/visualstudio/extensibility/2022/xaml"
+              xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+              xmlns:colors="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
+    <Grid Margin="14">
+        <Grid.Resources>
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.TextBoxStyleKey}}" />
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" />
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="MutedText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:EnvironmentColors.SystemGrayTextBrushKey}}" />
+                <Setter Property="FontSize" Value="11" />
+            </Style>
+            <Style x:Key="SectionBorder" TargetType="Border">
+                <Setter Property="Padding" Value="12" />
+                <Setter Property="Margin" Value="0,0,0,12" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="1.2*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.ColumnSpan="3" Style="{StaticResource SectionBorder}">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Border Width="38"
+                            Height="38"
+                            Margin="0,0,12,0"
+                            Background="#0F6CBD"
+                            CornerRadius="10">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Text="C/W" />
+                    </Border>
+                    <StackPanel>
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="Code-W" />
+                        <TextBlock Style="{StaticResource MutedText}" Text="Visual Studio 中的多模型 AI Coding Assistant" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding ModeDisplayName}" />
+                    <TextBlock Style="{StaticResource MutedText}" Text="{Binding StatusMessage}" TextAlignment="Right" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource SectionBorder}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="对话面板" />
+                    <TextBlock Margin="0,4,0,0"
+                               Style="{StaticResource MutedText}"
+                               Text="{Binding ContextSummary}" />
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Transcript}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10"
+                                        Padding="10"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                                        Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+                                    <StackPanel>
+                                        <DockPanel LastChildFill="True">
+                                            <TextBlock DockPanel.Dock="Left"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding RoleLabel}" />
+                                            <TextBlock DockPanel.Dock="Right"
+                                                       HorizontalAlignment="Right"
+                                                       Style="{StaticResource MutedText}"
+                                                       Text="{Binding Timestamp}" />
+                                        </DockPanel>
+                                        <TextBlock Margin="0,8,0,0"
+                                                   FontSize="12.5"
+                                                   LineHeight="18"
+                                                   Text="{Binding Content}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="4"
+                        Padding="10"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="当前输入" />
+                        <TextBlock Margin="0,4,0,8"
+                                   Style="{StaticResource MutedText}"
+                                   Text="Chat 更适合问答与讨论，Agent 更适合拆解规划、调用 MCP 工具和执行式协作。" />
+                        <TextBox MinHeight="120"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding DraftPrompt}" />
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,10,0,0">
+                            <Button Margin="0,0,8,0"
+                                    Content="清空会话"
+                                    Command="{Binding ResetConversationCommand}" />
+                            <Button Margin="0,0,8,0"
+                                    Content="停止"
+                                    Command="{Binding CancelRunCommand}" />
+                            <Button Content="发送"
+                                    Command="{Binding SendPromptCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="2" Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource SectionBorder}">
+                    <StackPanel>
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="模式切换" />
+                        <TextBlock Margin="0,4,0,10" Style="{StaticResource MutedText}" Text="{Binding ModeDescription}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Margin="0,0,8,0" Content="切换到 Chat" Command="{Binding SwitchToChatCommand}" />
+                            <Button Content="切换到 Agent" Command="{Binding SwitchToAgentCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SectionBorder}">
+                    <StackPanel>
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="Provider 配置" />
+                        <TextBlock Margin="0,4,0,10"
+                                   Style="{StaticResource MutedText}"
+                                   Text="不要求登录，用户直接配置 API Key 即可；Code-W 会按当前 Windows 用户进行本地加密存储。" />
+
+                        <TextBlock Text="当前 Provider" />
+                        <ComboBox Margin="0,6,0,10"
+                                  ItemsSource="{Binding ProviderOptions}"
+                                  SelectedItem="{Binding SelectedProviderName}" />
+
+                        <TextBlock Text="说明" />
+                        <TextBlock Margin="0,6,0,10" Style="{StaticResource MutedText}" Text="{Binding ProviderDescription}" />
+
+                        <TextBlock Text="Base URL" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding ProviderBaseUrl}" />
+
+                        <TextBlock Text="模型名称" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding ProviderModel}" />
+
+                        <TextBlock Text="API Key" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding ProviderApiKey}" />
+
+                        <CheckBox IsChecked="{Binding ProviderEnabled}" Content="启用当前 Provider" />
+
+                        <Button Margin="0,12,0,0"
+                                HorizontalAlignment="Right"
+                                Content="保存配置"
+                                Command="{Binding SaveConfigurationCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SectionBorder}">
+                    <StackPanel>
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="MCP 配置" />
+                        <TextBlock Margin="0,4,0,10"
+                                   Style="{StaticResource MutedText}"
+                                   Text="支持真实的 stdio MCP 握手、工具发现和 tools/call 调用。启用后，Agent 会把可用工具自动暴露给模型。" />
+
+                        <TextBlock Text="当前服务器" />
+                        <ComboBox Margin="0,6,0,10"
+                                  ItemsSource="{Binding McpServerOptions}"
+                                  SelectedItem="{Binding SelectedMcpServerName}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Margin="0,0,8,0"
+                                    Content="新增 MCP"
+                                    Command="{Binding AddMcpServerCommand}" />
+                            <Button Margin="0,0,8,0"
+                                    Content="删除当前"
+                                    Command="{Binding RemoveMcpServerCommand}" />
+                            <Button Content="测试连接"
+                                    Command="{Binding TestMcpServerCommand}" />
+                        </StackPanel>
+
+                        <TextBlock Text="名称" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding McpServerName}" />
+
+                        <TextBlock Text="说明" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding McpServerDescription}" />
+
+                        <TextBlock Text="启动命令" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding McpServerCommand}" />
+
+                        <TextBlock Text="启动参数" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding McpServerArguments}" />
+
+                        <CheckBox IsChecked="{Binding McpServerEnabled}" Content="启用当前 MCP Server" />
+
+                        <TextBlock Margin="0,12,0,8"
+                                   FontWeight="SemiBold"
+                                   Text="已注册服务器" />
+                        <ItemsControl ItemsSource="{Binding McpServers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,8"
+                                            Padding="8"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                                        <StackPanel>
+                                            <DockPanel LastChildFill="True">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                <TextBlock HorizontalAlignment="Right"
+                                                           Style="{StaticResource MutedText}"
+                                                           Text="{Binding Status}" />
+                                            </DockPanel>
+                                            <TextBlock Margin="0,4,0,0" Text="{Binding Description}" />
+                                            <TextBlock Margin="0,6,0,0" Style="{StaticResource MutedText}" Text="{Binding Detail}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SectionBorder}">
+                    <StackPanel>
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="Skill 配置" />
+                        <TextBlock Margin="0,4,0,10"
+                                   Style="{StaticResource MutedText}"
+                                   Text="启用后会在发送请求前读取本地 skill 文件，并把内容注入系统提示词，让 Chat / Agent 都能真正使用这些模板。" />
+
+                        <TextBlock Text="当前 Skill" />
+                        <ComboBox Margin="0,6,0,10"
+                                  ItemsSource="{Binding SkillOptions}"
+                                  SelectedItem="{Binding SelectedSkillName}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Margin="0,0,8,0"
+                                    Content="新增 Skill"
+                                    Command="{Binding AddSkillCommand}" />
+                            <Button Margin="0,0,8,0"
+                                    Content="删除当前"
+                                    Command="{Binding RemoveSkillCommand}" />
+                            <Button Content="扫描目录"
+                                    Command="{Binding ScanSkillsCommand}" />
+                        </StackPanel>
+
+                        <TextBlock Text="名称" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding SkillName}" />
+
+                        <TextBlock Text="说明" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding SkillDescription}" />
+
+                        <TextBlock Text="入口文件" />
+                        <TextBox Margin="0,6,0,10" Text="{Binding SkillEntryPoint}" />
+
+                        <CheckBox IsChecked="{Binding SkillEnabled}" Content="启用当前 Skill" />
+
+                        <TextBlock Margin="0,12,0,8"
+                                   FontWeight="SemiBold"
+                                   Text="已注册 Skill" />
+                        <ItemsControl ItemsSource="{Binding Skills}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,8"
+                                            Padding="8"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                                        <StackPanel>
+                                            <DockPanel LastChildFill="True">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                <TextBlock HorizontalAlignment="Right"
+                                                           Style="{StaticResource MutedText}"
+                                                           Text="{Binding Status}" />
+                                            </DockPanel>
+                                            <TextBlock Margin="0,4,0,0" Text="{Binding Description}" />
+                                            <TextBlock Margin="0,6,0,0" Style="{StaticResource MutedText}" Text="{Binding Detail}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SectionBorder}">
+                    <StackPanel>
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="本地存储" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource MutedText}" Text="{Binding StoragePath}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</DataTemplate>
