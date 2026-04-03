@@ -7,6 +7,7 @@ internal sealed partial class CodeWToolWindowData
 {
     private async Task AddMcpServerAsync(CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
         CommitSelectedMcpServer();
 
         McpServerDefinition server = new()
@@ -23,6 +24,7 @@ internal sealed partial class CodeWToolWindowData
 
     private async Task RemoveMcpServerAsync(CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
         if (selectedMcpServer is null)
         {
             StatusMessage = "当前没有可删除的 MCP Server。";
@@ -37,6 +39,7 @@ internal sealed partial class CodeWToolWindowData
 
     private async Task AddSkillAsync(CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
         CommitSelectedSkill();
 
         SkillDefinition skill = new()
@@ -54,6 +57,7 @@ internal sealed partial class CodeWToolWindowData
 
     private async Task RemoveSkillAsync(CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
         if (selectedSkill is null)
         {
             StatusMessage = "当前没有可删除的 Skill。";
@@ -66,10 +70,11 @@ internal sealed partial class CodeWToolWindowData
         await SaveInternalAsync(cancellationToken, $"已移除 Skill：{removedName}");
     }
 
-    private Task SaveCurrentConfigurationAsync(CancellationToken cancellationToken, string successMessage)
+    private async Task SaveCurrentConfigurationAsync(CancellationToken cancellationToken, string successMessage)
     {
+        await EnsureLoadedAsync(cancellationToken);
         CommitAllEditors();
-        return SaveInternalAsync(cancellationToken, successMessage);
+        await SaveInternalAsync(cancellationToken, successMessage);
     }
 
     private async Task SaveInternalAsync(CancellationToken cancellationToken, string successMessage)

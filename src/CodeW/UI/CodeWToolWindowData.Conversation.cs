@@ -9,6 +9,8 @@ internal sealed partial class CodeWToolWindowData
 {
     private async Task SendPromptAsync(object? parameter, IClientContext clientContext, CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
+
         if (IsBusy)
         {
             StatusMessage = "当前已有请求在运行，请先等待结束或点击“停止”。";
@@ -24,6 +26,7 @@ internal sealed partial class CodeWToolWindowData
             return;
         }
 
+        CloseOverlayPanels();
         DraftPrompt = string.Empty;
         AddTurn("user", "你", prompt);
         ConversationTurnViewModel assistantTurn = AddTurn("assistant", "Code-W", string.Empty);
@@ -122,6 +125,8 @@ internal sealed partial class CodeWToolWindowData
 
     private async Task TestMcpServerAsync(object? parameter, IClientContext clientContext, CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
+
         if (IsBusy)
         {
             StatusMessage = "请先等待当前对话请求结束，再测试 MCP 连接。";
@@ -154,7 +159,7 @@ internal sealed partial class CodeWToolWindowData
                 ? $"MCP 测试完成，发现 {context.Tools.Count} 个工具。"
                 : context.Warnings.Count > 0
                     ? "MCP 测试完成，但没有成功发现工具。"
-                    : "MCP 测试完成，当前服务器没有暴露工具。";
+                    : "MCP 测试完成，当前服务端没有暴露工具。";
         }
         catch (Exception exception)
         {
@@ -165,6 +170,8 @@ internal sealed partial class CodeWToolWindowData
 
     private async Task ScanSkillsAsync(object? parameter, IClientContext clientContext, CancellationToken cancellationToken)
     {
+        await EnsureLoadedAsync(cancellationToken);
+
         if (IsBusy)
         {
             StatusMessage = "请先等待当前对话请求结束，再扫描 Skills。";
@@ -223,10 +230,6 @@ internal sealed partial class CodeWToolWindowData
     private void ResetTranscript()
     {
         Transcript.Clear();
-        AddTurn(
-            "assistant",
-            "Code-W",
-            "欢迎使用 Code-W。当前版本已经支持多 Provider、本地加密存储、流式输出、Agent 模式下的真实 MCP 工具调用，以及从本地 skill 文件加载提示模板。你现在还可以直接测试 MCP 连接，并扫描仓库中的 skills 目录。");
     }
 
     private void SetMode(ConversationMode mode)
@@ -300,14 +303,14 @@ internal sealed partial class CodeWToolWindowData
     private static string BuildMcpProbeReport(McpServerDefinition server, IMcpConversationContext context)
     {
         StringBuilder builder = new();
-        builder.AppendLine($"服务器：{server.Name}");
+        builder.AppendLine($"服务端：{server.Name}");
         builder.AppendLine($"命令：{server.Command} {server.Arguments}".Trim());
         builder.AppendLine($"状态：{(context.Tools.Count > 0 ? "连接成功" : "已完成连接尝试")}");
 
         if (context.Warnings.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("告警：");
+            builder.AppendLine("警告：");
             foreach (string warning in context.Warnings)
             {
                 builder.AppendLine($"- {warning}");
@@ -331,7 +334,7 @@ internal sealed partial class CodeWToolWindowData
         if (context.ServerInstructions.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("服务器补充说明：");
+            builder.AppendLine("服务端补充说明：");
             foreach (string instruction in context.ServerInstructions.Take(3))
             {
                 builder.AppendLine($"- {instruction}");
@@ -370,7 +373,7 @@ internal sealed partial class CodeWToolWindowData
         if (discoveryResult.Warnings.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("告警：");
+            builder.AppendLine("警告：");
             foreach (string warning in discoveryResult.Warnings)
             {
                 builder.AppendLine($"- {warning}");

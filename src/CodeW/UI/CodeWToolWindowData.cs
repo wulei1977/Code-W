@@ -1,6 +1,7 @@
 namespace CodeW.UI;
 
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Runtime.Serialization;
 using CodeW.Models;
 using CodeW.Services;
@@ -13,8 +14,10 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
     private readonly ICodeWConversationService conversationService;
     private readonly IMcpService mcpService;
     private readonly ISkillService skillService;
+    private readonly object loadSync = new();
 
     private CodeWConfiguration configuration = new();
+    private Task? loadTask;
     private CancellationTokenSource? activeRequestSource;
     private McpServerDefinition? selectedMcpServer;
     private SkillDefinition? selectedSkill;
@@ -47,6 +50,12 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
     private string storagePath = string.Empty;
     private string contextSummary = "尚未捕获到 IDE 上下文。";
     private bool isBusy;
+    private bool isReady;
+    private bool hasConversationTurns;
+    private bool isConversationEmpty = true;
+    private bool isProviderPanelOpen;
+    private bool isExtensionsPanelOpen;
+    private bool isOverlayPanelOpen;
 
     public CodeWToolWindowData(
         ICodeWConfigurationStore configurationStore,
@@ -66,16 +75,25 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
         McpServerOptions = [];
         SkillOptions = [];
 
-        SwitchToChatCommand = new AsyncCommand((_, cancellationToken) =>
-        {
-            SetMode(ConversationMode.Chat);
-            return SaveCurrentConfigurationAsync(cancellationToken, "已切换到 Chat 模式");
-        });
+        Transcript.CollectionChanged += OnTranscriptCollectionChanged;
+        UpdateTranscriptState();
 
-        SwitchToAgentCommand = new AsyncCommand((_, cancellationToken) =>
+        SwitchToChatCommand = new AsyncCommand((_, cancellationToken) => SwitchModeAsync(ConversationMode.Chat, cancellationToken));
+        SwitchToAgentCommand = new AsyncCommand((_, cancellationToken) => SwitchModeAsync(ConversationMode.Agent, cancellationToken));
+        ToggleProviderPanelCommand = new AsyncCommand((_, _) =>
         {
-            SetMode(ConversationMode.Agent);
-            return SaveCurrentConfigurationAsync(cancellationToken, "已切换到 Agent 模式");
+            ToggleProviderPanel();
+            return Task.CompletedTask;
+        });
+        ToggleExtensionsPanelCommand = new AsyncCommand((_, _) =>
+        {
+            ToggleExtensionsPanel();
+            return Task.CompletedTask;
+        });
+        CloseOverlayPanelsCommand = new AsyncCommand((_, _) =>
+        {
+            CloseOverlayPanels();
+            return Task.CompletedTask;
         });
 
         SaveConfigurationCommand = new AsyncCommand((_, cancellationToken) => SaveCurrentConfigurationAsync(cancellationToken, "配置已保存"));
@@ -86,17 +104,18 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
         RemoveSkillCommand = new AsyncCommand((_, cancellationToken) => RemoveSkillAsync(cancellationToken));
         ScanSkillsCommand = new AsyncCommand(ScanSkillsAsync);
 
-        ResetConversationCommand = new AsyncCommand((_, _) =>
+        ResetConversationCommand = new AsyncCommand(async (_, cancellationToken) =>
         {
+            await EnsureLoadedAsync(cancellationToken);
+
             if (IsBusy)
             {
                 StatusMessage = "请先停止当前请求，再清空会话。";
-                return Task.CompletedTask;
+                return;
             }
 
             ResetTranscript();
             StatusMessage = "会话已清空";
-            return Task.CompletedTask;
         });
 
         CancelRunCommand = new AsyncCommand((_, _) =>
@@ -301,10 +320,61 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
     }
 
     [DataMember]
+    public bool IsReady
+    {
+        get => isReady;
+        set => SetProperty(ref isReady, value);
+    }
+
+    [DataMember]
+    public bool HasConversationTurns
+    {
+        get => hasConversationTurns;
+        set => SetProperty(ref hasConversationTurns, value);
+    }
+
+    [DataMember]
+    public bool IsConversationEmpty
+    {
+        get => isConversationEmpty;
+        set => SetProperty(ref isConversationEmpty, value);
+    }
+
+    [DataMember]
+    public bool IsProviderPanelOpen
+    {
+        get => isProviderPanelOpen;
+        set => SetProperty(ref isProviderPanelOpen, value);
+    }
+
+    [DataMember]
+    public bool IsExtensionsPanelOpen
+    {
+        get => isExtensionsPanelOpen;
+        set => SetProperty(ref isExtensionsPanelOpen, value);
+    }
+
+    [DataMember]
+    public bool IsOverlayPanelOpen
+    {
+        get => isOverlayPanelOpen;
+        set => SetProperty(ref isOverlayPanelOpen, value);
+    }
+
+    [DataMember]
     public AsyncCommand SwitchToChatCommand { get; }
 
     [DataMember]
     public AsyncCommand SwitchToAgentCommand { get; }
+
+    [DataMember]
+    public AsyncCommand ToggleProviderPanelCommand { get; }
+
+    [DataMember]
+    public AsyncCommand ToggleExtensionsPanelCommand { get; }
+
+    [DataMember]
+    public AsyncCommand CloseOverlayPanelsCommand { get; }
 
     [DataMember]
     public AsyncCommand SaveConfigurationCommand { get; }
@@ -336,9 +406,52 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
     [DataMember]
     public AsyncCommand SendPromptCommand { get; }
 
-    public async Task LoadAsync(CancellationToken cancellationToken)
+    public Task LoadAsync(CancellationToken cancellationToken)
+        => EnsureLoadedAsync(cancellationToken);
+
+    private async Task SwitchModeAsync(ConversationMode mode, CancellationToken cancellationToken)
     {
-        configuration = await configurationStore.LoadAsync(cancellationToken);
+        await EnsureLoadedAsync(cancellationToken);
+        SetMode(mode);
+        await SaveCurrentConfigurationAsync(cancellationToken, mode == ConversationMode.Chat ? "已切换到 Chat 模式" : "已切换到 Agent 模式");
+    }
+
+    private async Task EnsureLoadedAsync(CancellationToken cancellationToken)
+    {
+        Task currentLoad;
+        lock (loadSync)
+        {
+            loadTask ??= LoadCoreAsync();
+            currentLoad = loadTask;
+        }
+
+        try
+        {
+            await currentLoad.WaitAsync(cancellationToken);
+        }
+        catch
+        {
+            if (currentLoad.IsFaulted || currentLoad.IsCanceled)
+            {
+                lock (loadSync)
+                {
+                    if (ReferenceEquals(loadTask, currentLoad))
+                    {
+                        loadTask = null;
+                    }
+                }
+            }
+
+            throw;
+        }
+    }
+
+    private async Task LoadCoreAsync()
+    {
+        IsReady = false;
+        CloseOverlayPanels();
+
+        configuration = await configurationStore.LoadAsync(CancellationToken.None);
         StoragePath = configurationStore.StoragePath;
 
         RefreshProviderOptions();
@@ -358,5 +471,31 @@ internal sealed partial class CodeWToolWindowData : NotifyPropertyChangedObject
         StatusMessage = string.IsNullOrWhiteSpace(SelectedProviderName)
             ? "Code-W 已准备就绪"
             : $"Code-W 已准备就绪，当前 Provider：{SelectedProviderName}";
+        IsReady = true;
+    }
+
+    private void OnTranscriptCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => UpdateTranscriptState();
+
+    private void UpdateTranscriptState()
+    {
+        HasConversationTurns = Transcript.Count > 0;
+        IsConversationEmpty = !HasConversationTurns;
+    }
+
+    private void ToggleProviderPanel()
+        => SetOverlayPanels(!IsProviderPanelOpen, false);
+
+    private void ToggleExtensionsPanel()
+        => SetOverlayPanels(false, !IsExtensionsPanelOpen);
+
+    private void CloseOverlayPanels()
+        => SetOverlayPanels(false, false);
+
+    private void SetOverlayPanels(bool providerOpen, bool extensionsOpen)
+    {
+        IsProviderPanelOpen = providerOpen;
+        IsExtensionsPanelOpen = extensionsOpen;
+        IsOverlayPanelOpen = providerOpen || extensionsOpen;
     }
 }

@@ -11,7 +11,7 @@ internal sealed class CodeWExtension : Extension
     {
         Metadata = new(
             id: "CodeW.63B4802C-426B-4DDE-9B10-9F66D0D02855",
-            version: new Version(0, 1, 1),
+            version: new Version(0, 1, 2),
             publisherName: "Code-W",
             displayName: "Code-W",
             description: "在 Visual Studio 中提供多模型 Chat / Agent 工作流，并支持 MCP 与 Skill 扩展能力的 AI 编码助手。")
